@@ -1,0 +1,52 @@
+# Supervised initialization data for WebArena. The teacher is driven over the same
+# accumulated conversation the AgentGym-RL rollout (training path B) builds, so the
+# checkpoint initializes that run with no prompt-format shift.
+#   ENV=webarena OPENAI_BASE_URL=... OPENAI_API_KEY=... bash scripts/sft.sh
+env: webarena
+split: data/webarena_train.json     # disjoint from data/webarena_eval_50.json
+out_dir: results/webarena_sft/teacher
+max_steps: 15
+workers: 8
+# Inherited from WebArenaDomain; stated here because it is what makes the corpus
+# match path B. per_turn would collect the evaluation-shaped prompt instead.
+context: accumulated
+
+policy:
+  model: ???                        # see configs/sft/alfworld.yaml on credentials
+  temperature: 0.0
+  max_tokens: 512
+  # The rollout generates with thinking off, so the teacher must too -- and the
+  # empty reasoning block the template emits moves into the target below.
+  enable_thinking: false
+
+harness:
+  mode: inline
+  recall_top_k: 3
+  charge_meta_actions: true
+  max_meta_actions: 6
+
+bank:
+  path: null
+  mode: frozen
+
+env_options:
+  # One AgentGym agentenv-webarena server per entry; workers spread round-robin.
+  servers: [http://127.0.0.1:36005]
+  max_obs_chars: 0                  # uncapped, as the corpus was collected
+
+sft:
+  data_dir: results/webarena_sft/data
+  min_score: 1.0
+  drop_malformed: true
+  # A refused meta-action teaches the student to spend a call it does not have.
+  drop_failed_meta: true
+  # Matched to the rollout: max_tokens per turn, max_model_len per conversation.
+  # A longer target is one the student could never emit; a longer conversation
+  # would be left-truncated at train time, losing the instruction.
+  max_response_tokens: 512
+  max_length: 16384
+  max_prompt_chars: 0               # the two token caps above replace the char cap
+  think_prefill: true
+  tokenizer: Qwen/Qwen3-8B
+  val_ratio: 0.1
+  seed: 42

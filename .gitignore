@@ -1,0 +1,11 @@
+*.egg-info/
+*.parquet
+.auth/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+build/
+checkpoints/
+outputs/
+results/
+wandb/

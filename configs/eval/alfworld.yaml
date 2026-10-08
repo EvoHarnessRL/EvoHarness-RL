@@ -1,0 +1,26 @@
+# python -m evoharness eval --config configs/eval/alfworld.yaml policy.model=<served name>
+env: alfworld
+split: valid_seen            # 140 seen games; valid_unseen = 134 unseen games
+out_dir: results/alfworld_valid_seen
+max_steps: 70
+workers: 4
+
+policy:
+  model: Qwen/Qwen3-8B
+  base_url: http://localhost:8000/v1
+  temperature: 1.0
+  top_p: 0.9
+  max_tokens: 2048
+
+harness:
+  mode: inline               # inline | always_on | env_only
+  recall_top_k: 3
+  # The reported ALFWorld numbers do not charge meta-actions against max_steps.
+  charge_meta_actions: false
+
+bank:
+  path: null                 # skill bank JSON; frozen unless mode=evolve
+  mode: frozen
+
+env_options:
+  config_path: null          # defaults to the bundled TextWorld config; needs $ALFWORLD_DATA

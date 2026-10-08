@@ -1,0 +1,48 @@
+# WebArena GRPO on the shared stack (32 tasks x 4 rollouts, 15 steps).
+# Rewards are 0/1 here, so the shaping coefficients are scaled down accordingly.
+defaults:
+  - ppo_trainer
+  - common
+  - _self_
+
+data:
+  train_batch_size: 32
+  val_batch_size: 50
+  max_prompt_length: 8192
+  max_response_length: 512
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 32
+    ppo_micro_batch_size_per_gpu: 1
+    kl_loss_type: low_var_kl
+  rollout:
+    tensor_model_parallel_size: 1
+
+env:
+  env_name: webarena
+  max_steps: 15
+  success_reward: 1.0
+  rollout:
+    n: 4
+  # Task-list JSON files (a list of task indices, or {"task_ids": [...]}).
+  train_split: data/webarena_train.json
+  val_split: data/webarena_eval_50.json
+  options:
+    servers: [http://127.0.0.1:36005]
+    max_obs_chars: 12000
+  harness:
+    # The prompt calls six the hard maximum; enforce it as in evaluation.
+    max_meta_actions: 6
+
+reward_shaping:
+  lambda_eff: 0.02
+  lambda_div_max: 0.02
+  lambda_spam: 0.01
+  lambda_invalid: 0.01
+
+trainer:
+  total_epochs: 25
+  test_freq: 11
+  save_freq: 11
+  val_before_train: false

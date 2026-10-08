@@ -1,0 +1,25 @@
+# ALFWorld GRPO (paper run: Qwen3-8B SFT init, 16 tasks x 8 rollouts, 70 steps).
+defaults:
+  - ppo_trainer
+  - common
+  - _self_
+
+data:
+  train_batch_size: 16
+  val_batch_size: 128
+  max_prompt_length: 12288
+  max_response_length: 512
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 128
+    ppo_micro_batch_size_per_gpu: 2
+    kl_loss_type: kl
+  rollout:
+    tensor_model_parallel_size: 4
+
+env:
+  env_name: alfworld
+  max_steps: 70
+  train_split: train
+  val_split: valid_seen

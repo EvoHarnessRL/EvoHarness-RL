@@ -1,0 +1,39 @@
+# Supervised initialization data for WebShop.
+#   ENV=webshop OPENAI_BASE_URL=... OPENAI_API_KEY=... \
+#     bash scripts/sft.sh env_options.data_dir=/path/to/webshop/data
+env: webshop
+split: train                 # goals [500, ...); test is [0, 500)
+out_dir: results/webshop_sft/teacher
+max_steps: 15
+workers: 8
+limit: 1000
+
+policy:
+  model: ???                 # see configs/sft/alfworld.yaml on credentials
+  temperature: 0.6
+  max_tokens: 1024
+
+harness:
+  mode: inline
+  recall_top_k: 6
+  # The WebShop teacher spent meta-actions off-budget, up to a per-episode cap.
+  charge_meta_actions: false
+  max_meta_actions: 6
+
+bank:
+  path: null
+  mode: frozen
+
+env_options:
+  data_dir: ???
+  small: true                # the 1000-product subset the corpus was collected on
+
+sft:
+  data_dir: results/webshop_sft/data
+  layout: system
+  few_shots: false           # WebShop was converted without demonstrations
+  min_score: 1.0             # success is a task score of exactly 1.0
+  drop_malformed: true
+  max_prompt_chars: 80000
+  val_ratio: 0.1
+  seed: 42

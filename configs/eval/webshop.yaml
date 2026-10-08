@@ -1,0 +1,25 @@
+# python -m evoharness eval --config configs/eval/webshop.yaml env_options.data_dir=/path/to/webshop/data
+env: webshop
+split: test                  # goals [0, 500)
+out_dir: results/webshop_test
+max_steps: 20
+workers: 8
+
+policy:
+  model: Qwen/Qwen3-8B
+  base_url: http://localhost:8000/v1
+  temperature: 0.6
+  max_tokens: 1024
+
+harness:
+  mode: inline
+  recall_top_k: 6
+  charge_meta_actions: true  # same budget as GRPO training
+
+bank:
+  path: null
+  mode: frozen
+
+env_options:
+  data_dir: ???
+  small: false

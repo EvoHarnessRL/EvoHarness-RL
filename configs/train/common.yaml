@@ -1,0 +1,85 @@
+# Shared by every benchmark. Composed after verl-agent's ppo_trainer.yaml.
+algorithm:
+  adv_estimator: grpo
+  use_kl_in_reward: false
+
+data:
+  train_files: ~/data/evoharness/${env.env_name}/train.parquet
+  val_files: ~/data/evoharness/${env.env_name}/test.parquet
+  filter_overlong_prompts: true
+  truncation: error
+  return_raw_chat: true
+
+actor_rollout_ref:
+  model:
+    path: ???
+    use_remove_padding: true
+    enable_gradient_checkpointing: true
+  actor:
+    optim:
+      lr: 1.0e-6
+    use_kl_loss: true
+    kl_loss_coef: 0.01
+    # Invalid actions are charged once, by reward_shaping.lambda_invalid.
+    use_invalid_action_penalty: false
+    fsdp_config:
+      param_offload: false
+      optimizer_offload: false
+  rollout:
+    name: vllm
+    # GRPO groups come from env.rollout.n.
+    n: 1
+    gpu_memory_utilization: 0.6
+    enable_chunked_prefill: false
+    enforce_eager: false
+    free_cache_engine: false
+    log_prob_micro_batch_size_per_gpu: 16
+  ref:
+    log_prob_micro_batch_size_per_gpu: 16
+
+env:
+  seed: 0
+  # Rows sampled per task; contiguous rows form one GRPO group.
+  rollout:
+    n: 8
+  # Reward for a solved task; the shaping terms below are added on the final turn.
+  success_reward: 10.0
+  workers: 32
+  options: {}
+  harness:
+    # inline: the policy calls commit / track / recall / note (EvoHarness-RL).
+    # always_on: panels injected every turn, env-only action space.
+    mode: inline
+    belief: true
+    plan: true
+    experience: true
+    recall_top_k: 3
+    charge_meta_actions: true
+    bank:
+      # Mutable bank, consolidated once per batch; validation reads it read-only.
+      # Leave path null to train without Experience.
+      path: null
+      max_per_category: 80
+      # OpenAI-compatible consolidator, e.g. {model: ..., base_url: ..., max_tokens: 6144, enable_thinking: false}.
+      evolver: null
+
+reward_shaping:
+  enable: true
+  lambda_eff: 1.0
+  lambda_div_max: 1.0
+  lambda_spam: 0.1
+  lambda_invalid: 0.1
+  spam_cap: 10
+  div_reward: verb_ratio
+
+trainer:
+  critic_warmup: 0
+  logger: [console, wandb]
+  project_name: evoharness
+  experiment_name: ${env.env_name}_grpo
+  n_gpus_per_node: 8
+  nnodes: 1
+  save_freq: 5
+  test_freq: 5
+  val_before_train: true
+  total_epochs: 150

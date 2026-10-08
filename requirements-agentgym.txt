@@ -1,0 +1,25 @@
+# Training path B: AgentGym-RL (WebArena, the setup behind the paper's WebArena RL row).
+# Versions of the environment that run was trained in (Python 3.10). Keep it separate
+# from path A: both frameworks install a package named `verl`.
+#   pip install -r requirements-agentgym.txt
+#   pip install -e training/agentgym-rl/AgentGym-RL --no-deps
+#   pip install -e training/agentgym-rl/AgentGym/agentenv --no-deps
+torch==2.6.0
+vllm==0.8.5.post1
+ray[default]
+transformers==4.51.3
+tensordict==0.6.2
+flash-attn==2.7.4.post1
+accelerate
+codetiming
+datasets
+dill
+hydra-core
+openai
+pandas
+peft
+pyarrow>=15.0.0
+pybind11
+pylatexenc
+requests
+wandb

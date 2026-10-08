@@ -1,0 +1,23 @@
+EvoHarness
+Copyright 2026 The EvoHarness Authors
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Bundled training frameworks (each directory keeps its original license and notice files):
+
+training/verl-agent/
+    The verl-agent training framework as used by SkillRL (MIT, AIMING Lab), built on
+    verl-agent (Apache-2.0, Nanyang Technological University and the verl-agent team)
+    and verl (Apache-2.0, Bytedance Ltd.). Copied from the SkillRL codebase our ALFWorld
+    and WebShop runs used; only the modules needed for training are included, and
+    machine-specific paths were removed.
+
+training/agentgym-rl/
+    AgentGym-RL (MIT, FudanNLP-Agent) with its verl fork (Apache-2.0, Bytedance Ltd.)
+    and AgentGym's agentenv client and agentenv-webarena server (MIT, FudanNLP-Agent),
+    which bundles WebArena (Apache-2.0). Copied from the codebase our WebArena run used,
+    together with the harness modules its rollout imports; endpoints were made generic
+    (OpenAI-compatible) and site credentials are not included.
+
+evoharness/envs/alfworld/config_tw.yaml is the TextWorld configuration distributed
+with ALFWorld (MIT License). The WebArena instruction in
+evoharness/envs/webarena/prompts.py is the standard WebArena agent prompt.

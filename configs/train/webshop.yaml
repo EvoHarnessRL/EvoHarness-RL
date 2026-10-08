@@ -1,0 +1,36 @@
+# WebShop GRPO (paper run: 16 goals x 8 rollouts, 20 steps, self-judge consolidator).
+defaults:
+  - ppo_trainer
+  - common
+  - _self_
+
+data:
+  train_batch_size: 16
+  val_batch_size: 128
+  max_prompt_length: 8192
+  max_response_length: 1024
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 32
+    ppo_micro_batch_size_per_gpu: 1
+    kl_loss_type: low_var_kl
+  rollout:
+    tensor_model_parallel_size: 2
+    val_kwargs:
+      temperature: 0.6
+      do_sample: true
+  ref:
+    fsdp_config:
+      param_offload: true
+
+env:
+  env_name: webshop
+  max_steps: 20
+  train_split: train
+  val_split: test
+  options:
+    data_dir: ???
+    small: false   # true = the 1k-product set
+  harness:
+    recall_top_k: 6

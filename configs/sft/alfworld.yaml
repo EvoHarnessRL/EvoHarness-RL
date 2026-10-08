@@ -1,0 +1,43 @@
+# Supervised initialization data for ALFWorld: a teacher drives the same harness the
+# student is evaluated with, and its successful episodes become the targets.
+#   ENV=alfworld OPENAI_BASE_URL=... OPENAI_API_KEY=... bash scripts/sft.sh
+env: alfworld
+split: train                 # valid_seen / valid_unseen stay held out
+out_dir: results/alfworld_sft/teacher
+max_steps: 50
+workers: 8
+limit: 500                   # the first 500 games of a shuffled train split
+
+policy:
+  # The teacher. Any OpenAI-compatible endpoint; leave base_url and api_key unset
+  # to take $OPENAI_BASE_URL / $OPENAI_API_KEY, which is how this repo expects
+  # credentials. The released corpus was distilled from a frontier model here.
+  model: ???
+  temperature: 1.0
+  top_p: 0.9
+  max_tokens: 1024
+
+harness:
+  mode: inline
+  recall_top_k: 3
+  # Matches the reported ALFWorld protocol: meta-actions are free.
+  charge_meta_actions: false
+
+bank:
+  path: null                 # a seed bank makes `recall` useful from the first turn
+  mode: frozen
+
+env_options:
+  config_path: null          # the bundled TextWorld config; needs $ALFWORLD_DATA
+
+sft:
+  data_dir: results/alfworld_sft/data
+  # system: a system message, few-shots, then the turn -- what the released
+  # checkpoint saw. fused: one user message, identical to evaluation and RL path A.
+  layout: system
+  few_shots: true            # the 7 demonstrations in envs/alfworld/demonstrations.py
+  min_score: 1.0             # success-only
+  drop_malformed: true
+  max_prompt_chars: 80000
+  val_ratio: 0.1
+  seed: 42
