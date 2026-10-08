@@ -7,8 +7,8 @@
 <p>
 <a href="#"><img alt="Paper" src="https://img.shields.io/badge/Paper-arXiv-b31b1b?style=flat-square&logo=arxiv&logoColor=white"></a>
 <a href="#"><img alt="Website" src="https://img.shields.io/badge/Project-Website-1f6feb?style=flat-square&logo=googlechrome&logoColor=white"></a>
-<a href="#"><img alt="VentureBeat" src="https://img.shields.io/badge/Featured_in-VentureBeat-e8422f?style=flat-square"></a>
-<a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-4c1?style=flat-square"></a>
+<a href="https://venturebeat.com/orchestration/meta-researchers-taught-an-8b-ai-model-to-match-claude-opus-4-5-without-the-frontier-price-tag"><img alt="VentureBeat" src="https://img.shields.io/badge/Featured_in-VentureBeat-e8422f?style=flat-square"></a>
+<a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-4c1?style=flat-square"></a>
 <a href="pyproject.toml"><img alt="Python" src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white"></a>
 </p>
 
@@ -68,15 +68,17 @@ trainable baseline by **+11.7% relative**. All numbers are success rates (%).
 ### What training actually learns
 
 <p align="center">
-<img src="assets/harness-annealing.png" width="49%" alt="Mean harness calls per episode over training, split into early-explore, annealing and stable phases">
-<img src="assets/harness-usage.png" width="46%" alt="Harness calls per episode against ALFWorld success rate for Base, SFT and EvoHarness-RL">
+<img src="assets/harness-annealing.png" width="50%" alt="Mean harness calls per episode over training, through early-explore, annealing and stable phases">
+<img src="assets/env-dependent.png" width="37%" alt="Environment-dependent retention of meta-actions on ALFWorld, WebShop and WebArena">
 </p>
 
-**Harness annealing.** Harness use falls while success keeps climbing, through three
-phases — broad exploration, annealing, then a stable floor around one call per episode.
-SFT inherits the teacher's habit of narrating everything (9.03 calls/episode for 59.3%
-success); RL cuts that to **2.98 calls at 95.0% success**. Recurring patterns get
-internalized, and the harness is kept for what is genuinely worth externalizing.
+**Harness annealing.** Harness use falls while task success keeps climbing, through
+three phases — broad exploration, annealing, then a stable floor around one call per
+episode. Early on the policy leans on external support to stabilize long-horizon
+execution; as recurring patterns get internalized, routine decisions move inside the
+model and the harness is kept for what stays genuinely worth externalizing. SFT inherits
+the teacher's habit of narrating everything (9.03 calls/episode for 59.3% success); RL
+settles at **2.98 calls at 95.0% success**.
 
 **Coordination specialization.** The same recipe converges to *different* habits per
 environment. Mean calls/episode, early → final: ALFWorld 4.63 → 1.15 (keeps `recall` —
@@ -337,12 +339,14 @@ runs used. Both install a package named `verl`, so give each its own environment
 > [Supervised initialization](#supervised-initialization) builds one.
 
 <p align="center">
-<img src="assets/training-reward.png" width="44%" alt="Training reward over steps: EvoHarness-RL rises faster and plateaus higher than sparse GRPO">
+<img src="assets/training-pipeline.png" width="100%" alt="Training pipeline: the policy generates rollouts that interleave environment actions with BPE meta-actions, and GRPO updates it with a composite reward">
 </p>
 
-Because the BPE scaffold externalizes state, progress and prior experience, rollouts
-find successes earlier — reward climbs faster from the first steps and settles well
-above sparse GRPO on the same budget.
+A rollout interleaves environment actions with BPE meta-actions, each one reading or
+writing Belief, Progress or Experience. GRPO then updates the policy with a composite
+reward: the base objective, an annealed exploration bonus over the four meta-actions,
+and an efficiency term — the push from broad harness exploration toward selective,
+task-adaptive coordination.
 
 | | Path A: verl-agent | Path B: AgentGym-RL |
 | --- | --- | --- |
@@ -484,5 +488,6 @@ and GRPO training then work without further changes.
 
 ## License
 
-Apache 2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). The bundled training stacks
-under `training/` carry their upstream licenses (verl, AgentGym-RL).
+MIT — see [`LICENSE`](LICENSE). Third-party attributions are in [`NOTICE`](NOTICE); the
+training stacks vendored under `training/` keep their own upstream licenses (verl,
+verl-agent, AgentGym-RL, AgentGym).
