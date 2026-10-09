@@ -448,14 +448,16 @@ and GRPO training then work without further changes.
 ## Citation
 
 ```bibtex
-@misc{ning2026evoharnessrllearningruntimeharness,
-      title={EvoHarness-RL: Learning Runtime Harness Coordination for Self-Evolving Agents},
-      author={Xuying Ning and Dongqi Fu and Tianxin Wei and Yuanchen Bei and Xiyuan Yang and Wujiang Xu and Yueqi Song and Bingxuan Li and Zihao Li and Hanqing Zeng and Xiang Shen and Yajuan Wang and Yifan Wu and Qifan Wang and Jiayi Liu and Hong Li and Yinglong Xia and Xiangjun Fan and Hanghang Tong and Jingrui He},
-      year={2026},
-      eprint={2608.05446},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2608.05446},
+@article{ning2026evoharness,
+  title   = {EvoHarness-RL: Learning Runtime Harness Coordination for Self-Evolving Agents},
+  author  = {Ning, Xuying and Fu, Dongqi and Wei, Tianxin and Bei, Yuanchen and Yang, Xiyuan and
+             Xu, Wujiang and Song, Yueqi and Li, Bingxuan and Li, Zihao and Zeng, Hanqing and
+             Shen, Xiang and Wang, Yajuan and Wu, Yifan and Wang, Qifan and Liu, Jiayi and
+             Li, Hong and Xia, Yinglong and Fan, Xiangjun and Tong, Hanghang and He, Jingrui},
+  journal = {arXiv preprint arXiv:2608.05446},
+  eprint  = {2608.05446},
+  archivePrefix = {arXiv},
+  year    = {2026}
 }
 ```
 
