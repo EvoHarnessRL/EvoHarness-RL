@@ -5,7 +5,7 @@
 <p><b>Learning Runtime Harness Coordination for Self-Evolving Agents</b></p>
 
 <p>
-<a href="#"><img alt="Paper" src="https://img.shields.io/badge/Paper-arXiv-b31b1b?style=flat-square&logo=arxiv&logoColor=white"></a>
+<a href="https://arxiv.org/abs/2608.05446"><img alt="Paper" src="https://img.shields.io/badge/Paper-arXiv:2608.05446-b31b1b?style=flat-square&logo=arxiv&logoColor=white"></a>
 <a href="#"><img alt="Website" src="https://img.shields.io/badge/Project-Website-1f6feb?style=flat-square&logo=googlechrome&logoColor=white"></a>
 <a href="https://venturebeat.com/orchestration/meta-researchers-taught-an-8b-ai-model-to-match-claude-opus-4-5-without-the-frontier-price-tag"><img alt="VentureBeat" src="https://img.shields.io/badge/Featured_in-VentureBeat-e8422f?style=flat-square"></a>
 <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-4c1?style=flat-square"></a>
@@ -286,14 +286,10 @@ actually receive, and the two training paths shape that call differently:
 | WebArena | `accumulated` | the whole conversation prefix | path B |
 
 `context` defaults to the environment's own (`Domain.context`) because it has to match
-the stack that trains on it. For `per_turn`, `sft.layout` picks between `system` (a
-system message, then few-shots, then the turn — what the released checkpoints saw) and
-`fused` (one user message, byte-identical to evaluation and to path A). `fused` is the
-better choice for a new run; `system` is the one that reproduces the published recipe.
-
-ALFWorld's seven demonstrations live in `evoharness/envs/alfworld/demonstrations.py` and
-are stored as `render_turn` inputs rather than frozen text, so they are always formatted
-like the turns they precede. Disable them with `sft.few_shots=false`.
+the stack that trains on it. For `per_turn`, `sft.layout=fused` puts everything in one
+user message (byte-identical to evaluation and to path A) and `system` reproduces the
+published recipe. ALFWorld's seven demonstrations live in
+`evoharness/envs/alfworld/demonstrations.py`; disable them with `sft.few_shots=false`.
 
 **Hyperparameters** (`scripts/sft.sh`, the rest left at the trainer's defaults):
 
@@ -304,29 +300,6 @@ like the turns they precede. Disable them with `sft.few_shots=false`.
 | Batch / micro-per-GPU | 16 / 2 | 8 / 1 |
 | Max length / truncation | 4096 / right | 16384 / left |
 | Epochs / GPUs | 4 / 8 | 3 / 2 |
-
-<details>
-<summary><b>Reproducibility</b></summary>
-
-`configs/sft/` and `scripts/sft.sh` reproduce the **recipe**, not the checkpoint. The
-corpus cannot be regenerated exactly, and two of the differences are deliberate:
-
-- **The teacher is sampled.** Different draws give different trajectories. Compare runs
-  by the teacher success rate in `summary.json`, not by checkpoint equality.
-- **WebShop** was collected with its own turn template; this repo uses the standard one,
-  so WebShop needs a fresh SFT run to get a matching number.
-- **ALFWorld** turns here quote the admissible-command list and render history as a
-  Python list; the original renderer did neither, and appended a success/failure note to
-  `PREVIOUS ACTION(S)`. The demonstrations follow whatever `render_turn` produces, so
-  they stay consistent with the turns either way.
-- **WebArena** collection uses this repo's harness rather than the original ScalingInter
-  collector, which also carried a token-budget meter, per-worker skill banks merged
-  across workers, and an evolver running during collection. `track` and `recall` can
-  therefore return different text, which changes the cadence baked into the targets.
-- **The 90/10 split** uses seed 42 over episodes, but orders them by task id rather than
-  by collection order, so the partition differs from the original.
-
-</details>
 
 ---
 
@@ -464,25 +437,17 @@ and GRPO training then work without further changes.
 
 ---
 
-## Implementation notes
-
-- Under `per_turn` the system prompt and turn text share a single user message, in
-  supervised initialization, GRPO and evaluation alike. WebArena instead uses
-  `accumulated`, matching the conversation its rollout builds.
-- WebArena uses a rule-based page-history belief (`track [visited]`, `[values]`,
-  `[objective]`, free text); the LLM perception judge is not included.
-- `note` insights are evidence for the next consolidation rather than immediate bank
-  writes, so the bank is identical for all rows of a batch.
-- The spam term counts consecutive repeated actions only.
-
 ## Citation
 
 ```bibtex
-@inproceedings{evoharness2027,
-  title     = {EvoHarness-RL: Learning Runtime Harness Coordination for Self-Evolving Agents},
-  author    = {TODO},
-  booktitle = {TODO},
-  year      = {2027}
+@misc{ning2026evoharnessrllearningruntimeharness,
+      title={EvoHarness-RL: Learning Runtime Harness Coordination for Self-Evolving Agents},
+      author={Xuying Ning and Dongqi Fu and Tianxin Wei and Yuanchen Bei and Xiyuan Yang and Wujiang Xu and Yueqi Song and Bingxuan Li and Zihao Li and Hanqing Zeng and Xiang Shen and Yajuan Wang and Yifan Wu and Qifan Wang and Jiayi Liu and Hong Li and Yinglong Xia and Xiangjun Fan and Hanghang Tong and Jingrui He},
+      year={2026},
+      eprint={2608.05446},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2608.05446},
 }
 ```
 
