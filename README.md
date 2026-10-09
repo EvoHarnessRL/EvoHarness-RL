@@ -349,18 +349,26 @@ standard verl-agent config.
 
 `reset` picks `train_batch_size` tasks and repeats each `env.rollout.n` times (contiguous
 rows form one GRPO group). Every row is an `Episode` whose meta-actions are answered by
-the workspace without stepping the environment. On its final turn the row receives
+the workspace without stepping the environment. On its final turn the row receives the
+cost-aware reward of the paper,
 
 ```
-R = success_reward·won + λ_eff·R_eff + λ_div(u)·R_div − λ_spam·min(S, C) − λ_inv·I
+R(τ; u) = R_GRPO(τ)  +  λ_div(u)·R_div(τ)  +  λ_eff·R_eff(τ)
+                        └─ exploration ─┘     └ specialization ┘
 ```
 
-(`evoharness/rl/reward.py`), where `R_eff = (T_max − |τ|)/T_max` on success, `R_div` is
-the unique-verb ratio or meta-action coverage, `S` counts consecutive repeated actions,
-`I` invalid ones, and `λ_div` anneals with a cosine over `trainer.total_epochs` updates —
-the exploration-into-specialization schedule behind the annealing plot above. The bank is
-read-only during a batch and consolidated once at the next `reset`; the update counter
-`u` lives in the bank, so it survives restarts.
+where `R_GRPO` is the base objective — task success with fixed penalties for invalid and
+degenerate actions. `R_eff(τ) = 1[succ(τ)]·(T_max − |τ|)/T_max` is a success-gated
+efficiency term: meta-actions draw on the same interaction budget as environment actions,
+so an unnecessary harness call costs exactly what a redundant environment action costs.
+`R_div(τ)` is the fraction of the four BPE action types exercised in `τ`, a transient
+exploration bonus whose weight `λ_div(u) = (λ_div^max/2)·(1 + cos(π·min(u,U)/U))` anneals
+to zero over the horizon `U` — early training explores the interface, late training keeps
+only what task reward and efficiency justify. Weights live under `reward_shaping`
+(`evoharness/rl/reward.py`).
+
+The bank is read-only during a rollout batch and consolidated once at the next `reset`;
+the update counter `u` lives in the bank, so it survives restarts.
 
 ### Path B — AgentGym-RL (WebArena)
 
@@ -378,10 +386,10 @@ ENV_SERVER_URL=http://127.0.0.1:36005 \
 ```
 
 The launcher's defaults are those of the reported run: 32 tasks × 4 rollouts, lr 1e-6,
-KL 0.01, 2 PPO epochs, interaction rounds growing 10 → 14 → 17 every 80 updates, shaped
-reward (`λ_eff = λ_div = 0.02`, `λ_spam = λ_inv = 0.01`), and reflect-then-reconcile
-consolidation at each epoch boundary. Without `BANK_PATH` the bank starts empty;
-`HARNESS=0` gives the sparse GRPO baseline.
+KL 0.01, 2 PPO epochs, the same cost-aware reward as path A, an interaction budget grown
+over training with AgentGym-RL's scaling-horizon schedule, and reflect-then-reconcile
+consolidation of the skill bank at each epoch boundary. Without `BANK_PATH` the bank
+starts empty; `HARNESS=0` gives the sparse GRPO baseline.
 
 ---
 
